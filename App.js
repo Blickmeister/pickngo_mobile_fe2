@@ -14,6 +14,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './app/screens/HomeScreen';
 import CreateBaguetteScreen from './app/screens/CreateBaguetteScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {CookiesProvider} from 'react-cookie';
 
 const HomeStack = createStackNavigator();
 const OrderStack = createStackNavigator();
@@ -59,12 +60,14 @@ const OrderStackScreen = ({navigation}) => (
 
 export default function App() {
     return (
+        <CookiesProvider>
         <NavigationContainer>
             <Drawer.Navigator initialRouteName="Home">
                 <Drawer.Screen name="Home" component={HomeStackScreen} />
                 <Drawer.Screen name="Order" component={OrderStackScreen}/>
             </Drawer.Navigator>
         </NavigationContainer>
+        </CookiesProvider>
     );
 }
 

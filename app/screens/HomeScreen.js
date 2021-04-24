@@ -4,17 +4,6 @@ import {homeUrl} from '../constants/endpoints/index';
 
 class HomeScreen extends Component {
 
-    login() {
-        fetch(homeUrl, {
-            method: 'GET',
-        })
-            .then((response) => response.json())
-            .then((jsonResponse) => {
-                this.setState({profilesData: jsonResponse, loading: false});
-                console.log('response: ' + jsonResponse);
-            }).catch((err) => console.error(err));
-    }
-
     render() {
         return (
             <View style={styles.container}>
