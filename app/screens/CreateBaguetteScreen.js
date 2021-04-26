@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import RadioButtonRN from 'radio-buttons-react-native';
-import {getIngredientsUrl} from '../constants/endpoints';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ASYNC_STORAGE_USER_KEY} from '../screens/LoginScreen';
+import CreateBaguetteComponent from '../components/createbaguette/CreateBaguetteComponent';
+import {createBaguetteOrderUrl} from '../constants/endpoints';
 
 class CreateBaguetteScreen extends Component {
     constructor(props) {
@@ -14,55 +16,106 @@ class CreateBaguetteScreen extends Component {
                 state: '',
                 items: [],
             },
-            ingredients: [],
+            isAuthenticated: false,
+            user: '',
+            orderId: '',
+            isLoading: true,
         };
+        //const {cookies} = props;
+        //this.state.csrfToken = cookies.get('XSRF-TOKEN');
+        //this.login = this.login.bind(this);
+        this.logout = this.logout.bind(this);
     }
 
+    getItem = () => {
+        return AsyncStorage.getItem(ASYNC_STORAGE_USER_KEY);
+    };
+
     componentDidMount() {
-        fetch(getIngredientsUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Credentials': true,
-                'Access-Control-Allow-Origin': 'http://192.168.100.12:3000',
-            },
-        })
-            .then((response) => response.json())
-            .then((jsonResponse) => {
-                this.setState({ingredients: jsonResponse});
-                console.log('response: ' + jsonResponse);
-            }).catch((err) => console.error(err));
+        /* (() => {
+             let user = AsyncStorage.getItem(ASYNC_STORAGE_USER_KEY);
+             if (user !== null && user !== undefined && user !== '') {
+                 // We have data!!
+                 this.setState({user: user, isAuthenticated: true});
+                 console.log("USEROS:" + user);
+             } else {
+                 this.setState({isAuthenticated: false});
+             }
+         })
+         ();*/
+        (async () => {
+            await this.retrieveData();
+        })();
+        console.log('orderId: ' + this.props.orderId);
+        if (this.props.orderId === undefined) {
+            // nemáme ještě orderId -> nová objednávka
+            fetch(createBaguetteOrderUrl, {
+                credentials: 'include',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Credentials': true,
+                    'Access-Control-Allow-Origin': '*'
+                }
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        console.log('Objednávka vytvořena');
+                    } else {
+                        response.json()
+                            .then((json) => console.error('Objednávku se nepodařilo vytvořit: ' + json.message));
+                    }
+                })
+                .then((jsonResponse) => {
+                    this.setState({orderId: jsonResponse});
+                    console.log("resík pusík: " + jsonResponse);
+                })
+                .catch((error) => console.log('Chyba při vytváření objednávky: ' + error));
+        } else {
+            // předání orderId pro vytvoření další bagety
+            this.setState({orderId: this.props.orderId});
+        }
+    }
+
+    retrieveData = async () => {
+        try {
+            const value = await AsyncStorage.getItem(ASYNC_STORAGE_USER_KEY);
+            if (value !== null) {
+                console.log('VALUE: ' + value);
+                this.setState(() => ({user: value}));
+                // value previously stored
+            }
+        } catch (e) {
+            // error reading value
+            console.log('READ ERROR: ' + e);
+        }
+    };
+
+    logout() {
+        /* fetch('http://192.168.100.12:8080/api/logout', {
+             method: 'POST',
+             credentials: 'include',
+             headers: {
+                 'X-XSRF-TOKEN': this.state.csrfToken
+             }
+         })
+             .then(res => res.json())
+             .then(jsonResponse => {
+                 window.location.href = jsonResponse.logoutUrl + "?id_token_hint=" +
+                     jsonResponse.idToken + "&post_logout_redirect_uri=" + window.location.origin;
+             }).catch((err) => console.error(err));*/
     }
 
     render() {
-        const baguetteTypes = [{
-            label: 'Světlá',
-        }, {
-            label: 'tmavá',
-        },
-        ];
+        let definedUser = this.state.user !== undefined;
+
         return (
             <View style={styles.container}>
                 <View style={styles.containerWelcome}>
-                    <Text style={styles.welcome}>PickNGo</Text>
+                    <Text style={styles.welcome}>PickNGo - Návrh bagety</Text>
                 </View>
-                <View style={styles.typeContainer}>
-                    <Text>Typ bagety:</Text>
-                    {/* zatím na pevno, pak dynamicky */}
-                    <RadioButtonRN
-                        data={baguetteTypes}
-                        selectedBtn={(e) => console.log(e)}
-                    />
-                </View>
-                <View style={styles.ingredientContainer}>
-                    <Text>Ingredience:</Text>
-                    {/* TODO */}
-                    {this.state.ingredients.map((ingredient, index) => {
-                        return (
-                            <Text>{ingredient.name}</Text>
-                        )
-                    })}
-                </View>
+                {definedUser && <Text style={styles.textCenter}>Přihlášený uživatel: {this.state.user}</Text>}
+                <CreateBaguetteComponent orderId={this.state.orderId}/>
             </View>
         );
     }
@@ -73,8 +126,8 @@ export default CreateBaguetteScreen;
 // stylizace
 const styles = StyleSheet.create({
     container: {
-        marginTop: 10,
-        marginLeft: 10,
+        padding: 10,
+        flex: 1,
     },
     containerWelcome: {
         justifyContent: 'center',
@@ -99,5 +152,15 @@ const styles = StyleSheet.create({
     },
     ingredientContainer: {
         marginTop: 10,
+    },
+    textCenter: {
+        textAlign: 'center',
+    },
+    textBig: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    marginAll: {
+        margin: 2,
     },
 });
