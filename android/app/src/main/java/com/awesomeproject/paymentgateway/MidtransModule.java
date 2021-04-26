@@ -21,6 +21,7 @@ import com.midtrans.sdk.corekit.models.UserDetail;
 import com.midtrans.sdk.corekit.models.snap.CreditCard;
 import com.midtrans.sdk.corekit.models.snap.TransactionResult;
 import com.midtrans.sdk.uikit.SdkUIFlowBuilder;
+import com.paymentgateway.MidtransPackage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,10 @@ public class MidtransModule extends ReactContextBaseJavaModule {
         super(reactContext);
         this.reactContext = reactContext;
     }
-
+    @Override
+    public boolean canOverrideExistingModule() {
+        return true;
+    }
     @Override
     public String getName() {
         return "MidtransModule";
@@ -164,7 +168,7 @@ public class MidtransModule extends ReactContextBaseJavaModule {
 
         CreditCard ccOptions = new CreditCard();
         ccOptions.setSaveCard(creditCardOptions.getBoolean("saveCard"));
-        ccOptions.setSecure(creditCardOptions.getBoolean("saveToken"));
+        //ccOptions.setSecure(creditCardOptions.getBoolean("saveToken"));
         //ccOptions.setChannel(CreditCard.MIGS);
         transactionRequest.setCreditCard(ccOptions);
         transactionRequest.setCardPaymentInfo(creditCardOptions.getString("paymentMode"), creditCardOptions.getBoolean("secure"));
