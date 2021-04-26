@@ -184,6 +184,19 @@ android {
 }
 
 dependencies {
+    // For using the Veritrans Sandbox
+    api 'com.midtrans:corekit:1.21.2-SANDBOX'
+
+    // For using the Veritrans Production
+    implementation 'com.midtrans:corekit:1.21.2'
+
+    // For using the Midtrans Sandbox
+    api 'com.midtrans:uikit:1.21.2-SANDBOX' // change the number to the latest version
+
+    // For using the Midtrans Production
+    implementation 'com.midtrans:uikit:1.21.2' // change the number to the latest version
+
+    //   api 'com.facebook.react:react-native:+'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
